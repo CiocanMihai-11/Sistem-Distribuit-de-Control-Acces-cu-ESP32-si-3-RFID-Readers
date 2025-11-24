@@ -5,7 +5,7 @@
 - **Tag-uri RFID** (ex. Mifare Classic, NTAG213)  
 - **LED + buzzer** pentru feedback  
   -  verde = acces permis  
-  -  roșu = acces refuzat  
+  -  roșu = acces respins  
 - **Server simplu** (Node.js / Python Flask)  
 - **Bază de date** (SQLite sau MySQL)
 
