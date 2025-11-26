@@ -6,6 +6,10 @@ Proiectul utilizează **FreeRTOS**, multiple task-uri, cozi de mesaje, semafoare
 
 ---
 
+## Schema bloc a proiectului - In Progress...
+
+--- 
+
 ## 1. Scopul Proiectului
 
 Scopul proiectului este dezvoltarea unui **sistem distribuit de control acces** care:
