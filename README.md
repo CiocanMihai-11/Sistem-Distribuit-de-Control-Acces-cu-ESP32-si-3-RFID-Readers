@@ -1,47 +1,124 @@
-#  Componente principale
+# Sistem Distribuit de Control Acces în Timp Real folosind ESP32, 3 RFID Readers și Protocol de Comunicație către PC
 
-- **ESP32** (microcontroler Wi-Fi)  
-- **RFID reader** (ex. MFRC522 sau PN532)  
-- **Tag-uri RFID** (ex. Mifare Classic, NTAG213)  
-- **LED + buzzer** pentru feedback  
-  -  verde = acces permis  
-  -  roșu = acces respins  
-- **Server simplu** (Node.js / Python Flask)  
-- **Bază de date** (SQLite sau MySQL)
+Acest proiect implementează un **sistem embedded distribuit**, construit în jurul unei plăci **ESP32**, care controlează **3 cititoare RFID** și acționează **3 uși independente** în timp real. Sistemul integrează o componentă externă — un **PC** — folosit pentru managementul centralizat al cardurilor, vizualizarea logurilor și controlul global al sistemului printr-un **protocol personalizat de comunicație**.
+
+Proiectul utilizează **FreeRTOS**, multiple task-uri, cozi de mesaje, semafoare și periferice hardware integrate în microcontroller, respectând toate cerințele unui sistem embedded de timp real.
 
 ---
 
-<img width="942" height="509" alt="image" src="https://github.com/user-attachments/assets/43b7bb7a-62f3-4655-ae1c-712521f95e65" />
+## 1. Scopul Proiectului
+
+Scopul proiectului este dezvoltarea unui **sistem distribuit de control acces** care:
+
+* Interoghează **3 cititoare RFID** în timp real
+* Decide local accesul și acționează **3 mecanisme de ușă** (servo/releu)
+* Comunică evenimentele și starea către un **PC**, printr-un protocol custom
+* Primește configurații și actualizări ale bazei de carduri de la PC
+* Asigură **sincronizare corectă** între multiple procese concurente
+* Rulează într-un mediu **RTOS** și gestionează latențe reduse
+
+Acest sistem poate fi extins ușor pentru clădiri, birouri, camere securizate sau laboratoare tehnice.
 
 ---
 
+## 2. Arhitectura Generală
 
-#  Funcționalități
+### 2.1 Componentele Sistemului
 
-## 1️ Citirea tag-ului RFID
-ESP32 citește UID-ul unui tag și îl trimite la server (prin HTTP/HTTPS).
+* **ESP32 DevKit V1** – nodul principal (microcontrollerul)
+* **3 × RFID Readers** (RC522 sau PN532)
+* **3 × actuatoare de ușă** (servo-motoare SG90 sau relee)
+* **Indicatori vizuali și acustici** (LED, buzzer)
+* **PC/Laptop** – nod central pentru:
 
+  * administrarea cardurilor
+  * loguri de acces
+  * configurare sistem
+* **Protocol de comunicație** între ESP32 și PC (UART/TCP/BLE)
 
+---
 
-## 2️ Verificarea accesului
-Serverul caută UID-ul în baza de date:
-- Dacă `enabled = true`, trimite răspuns **„Acces Permis”** 
-- Dacă `enabled = false` sau lipsă → **„Acces Respins”**   
+## 3. Arhitectura Software (FreeRTOS)
 
+ESP32 rulează **5 task-uri principale**:
 
+### 1. DoorTask1 (Real-Time)
 
-## 3️ Criptarea datelor
-- Datele introduse (nume, UID, status) sunt **criptate** în baza de date.  
-- Folosesc **AES-256-GCM** (cheie fixă pentru demo).
+* citire RFID #1
+* validare rapidă card
+* acționare ușă 1
+* trimitere evenimente către CommTask
 
+### 2. DoorTask2 (Real-Time)
 
+* identic pentru ușa 2
 
-## 4️ Interfață de administrare (simplă)
-- Formular web: adaugă / șterge utilizatori.  
-- Activează / dezactivează carduri.
+### 3. DoorTask3 (Real-Time)
 
+* identic pentru ușa 3
 
+### 4. CommTask
 
-## 5️ Feedback vizual / audio
--  LED verde + beep = **Acces permis**  
--  LED roșu = **Acces refuzat**
+* implementează protocolul custom cu PC-ul
+* trimite evenimente (card detectat, acces, eroare)
+* primește comenzi (adăugare card, ștergere card, mod securitate)
+* gestionează cozi de mesaje și parsing TLV
+
+### 5. ConfigTask (opțional)
+
+* menține baza de date a cardurilor în RAM + NVS Flash
+* accesează resursele prin mutex (concurență sigură)
+
+---
+
+## 4. Cerințe de Timp Real și Analiză
+
+Sistemul îndeplinește cerințele de real-time prin:
+
+* ciclu de citire RFID la **10–20 ms**
+* acționare servo/releu în **< 50 ms**
+* jitter redus datorită prioritizării RTOS
+
+### Măsurători realizabile:
+
+* toggling GPIO pentru timpi task
+* timestamp-uri interne
+* analiză pe PC
+
+---
+
+## 5. Demonstrație Practică
+
+Demonstrația de laborator include:
+
+* apropierea cardului de unul din cititoarele RFID
+* reacție în timp real (LED + servomotor)
+* trimiterea evenimentelor spre PC
+* vizualizare log în timp real pe aplicația de pe PC
+* modificarea permisiunilor din PC și propagarea către ESP32
+
+---
+
+## 6. Concluzie
+
+Proiectul oferă un exemplu foarte clar și complet de:
+
+* sistem embedded distribuit
+* proiectare cu FreeRTOS
+* protocoale custom
+* interacțiune real-time cu un proces fizic
+* gestionarea concurenței și sincronizării
+
+Arhitectura este scalabilă, robustă și evidențiază capabilitățile ESP32 în aplicații embedded profesionale.
+
+---
+
+## Dezvoltări ulterioare
+
+* Logare în cloud
+* Web server pe ESP32
+* Criptare mesajelor
+* Suport pentru zeci de uși (scalabilitate)
+* Înlocuire servo cu electromagnet industrial
+
+---
