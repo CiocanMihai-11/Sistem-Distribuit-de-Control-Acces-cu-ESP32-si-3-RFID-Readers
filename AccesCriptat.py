@@ -61,6 +61,15 @@ def dec_field(sealed_b64: str) -> str:
     c = AES.new(AES_KEY, AES.MODE_GCM, nonce=nonce)
     pt = c.decrypt_and_verify(ct, tag)
     return pt.decode("utf-8")
+
+#def dec_field(sealed_b64: str) -> str:
+#    """Inverseaza enc_field: Base64 -> bytes -> decriptare si verificare tag."""
+#    raw = base64.b64decode(sealed_b64)
+#    nonce, tag, ct = raw[:12], raw[12:28], raw[28:]
+#    c = AES.new(AES_KEY, AES.MODE_GCM, nonce=nonce)
+#    pt = c.decrypt_and_verify(ct, tag)
+#    return pt.decode("utf-8")
+
 # ------------------------------ DB: SQLite -------------------------------------
 DB_PATH = os.path.join(BASE, "acces.db")
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -144,5 +153,6 @@ def peek_name(rfid_uid: str):
         raise HTTPException(status_code=404, detail="Nu exista")
     name = dec_field(row[0])
     return {"rfid_uid_norm": norm_uid(rfid_uid), "name": name}
+
 
 
